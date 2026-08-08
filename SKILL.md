@@ -1,7 +1,4 @@
 ---
-name: smart-freight-assistant
-description: Smart Freight Assistant — International logistics rate inquiry, vessel schedule tracking, exchange rate conversion, and freight terminology encyclopedia. Supports four-channel push notifications via WeCom, DingTalk, QQ Mail, and Bark. / 智能货代助手 — 国际物流运价查询、船期追踪、汇率换算、术语百科，支持企业微信/钉钉/QQ邮箱/Bark四通道推送通知
----
 
 # 智能货代助手 / Smart Freight Assistant
 
@@ -32,6 +29,10 @@ POL, POD, port of loading, port of discharge, Shanghai, Ningbo, Shenzhen, Qingda
 ### 单证/报关 / Documentation & Customs
 HS编码、报关、清关、关税、海关、提单、装箱单、发票、原产地证
 HS code, customs declaration, customs clearance, tariff, packing list, invoice, certificate of origin
+
+### 目的港政策 / Destination Port Policies
+目的港政策、目的港规定、进口限制、免堆期、免箱期、海关查验、特殊单证、熏蒸、检疫、木包装、ISPM15、VGM、AMS、ENS、ACI、AFR、食品进口、危险品申报、双清、关税政策、反倾销税、贸易壁垒
+destination port policy, import restriction, free time, demurrage, detention, customs inspection, fumigation, ISPM 15, VGM, AMS filing, ENS filing, anti-dumping duty, trade barrier, dual clearance
 
 ### 贸易术语 / Incoterms
 FOB、CIF、CFR、DDP、DAP、EXW、FCA、CPT、CIP、DAT、DDU
@@ -65,10 +66,23 @@ USWC, USEC, US Gulf, North Europe Base, Mediterranean, Middle East, Red Sea, Ind
 - Must include disclaimer: rates are reference only; actual rates subject to carrier booking confirmation
 
 ### 2. 船期/货物追踪 / Vessel & Cargo Tracking
-- 用户提供提单号或柜号时，通过 web_search + web_fetch 查询船公司公开追踪页面
-- 输出格式：提单号/柜号 | 当前状态 | 所在位置 | 预计到港时间(ETA) | 更新时间
-- 无法查到结果时如实告知，并建议用户通过船公司官网或货代系统确认
-- If unable to retrieve results, inform user and suggest checking carrier website or freight system directly
+
+#### 当前: 公开 AIS 数据追踪（免费）
+- 通过 `web_search` + `web_fetch` 从公开航运数据平台获取实时船位与船期信息
+- Use `web_search` + `web_fetch` to query public AIS data platforms for vessel position & schedule
+- 优先数据源：Flexport Atlas、Tradlinx、MarineTraffic、VesselFinder 公开页面
+- 支持输入：船名、IMO 号、船名+航次
+- 自动提取：IMO / 当前经纬度 / 航行状态 / 上一港+离港时间 / 下一港+ETA / 航速 / 目的港
+- 输出格式见下方「货物追踪输出格式」
+- 船公司官方追踪页多数需登录或 JS 渲染，公开数据平台为当前最稳定的免费追踪方案
+- 无法查到结果时如实告知，并建议用户提供更精确的船名或 IMO 号重试
+
+#### 未来: API 直连追踪（会员专属）
+以下能力已纳入路线图，作为会员用户专属功能：
+- 提单号 / 柜号直查 —— 对接 51Tracking（200 单/月免费）或 VesselFinder Container Tracking API
+- 船公司官方数据直连 —— 绕过公开页限制，获取舱单级状态（已装船/中转/到港/清关/提货）
+- 无人值守盯箱 —— Webhook 推送 + 四通道通知，实现 7×24 自动监控
+- Activation: reserved for member/premium users; API keys configurable via skill preferences
 
 ### 3. 汇率查询 / Exchange Rate Inquiry
 - 通过 web_search 获取人民币兑美元/欧元/英镑等主要币种实时汇率
@@ -88,6 +102,28 @@ USWC, USEC, US Gulf, North Europe Base, Mediterranean, Middle East, Red Sea, Ind
 - 运价类信息必须做免责声明
 - 用户意图模糊时，优先推断合理默认值执行，缺失关键参数时反问一个明确问题
 
+### 6. 目的港政策查询 / Destination Port Policy Inquiry
+- **全球覆盖**：支持查询全球任意目的港（含其所属国家/地区）的进口政策与特殊要求，不仅限于单一区域
+- **Global coverage**: support querying import policies and special requirements for any destination port worldwide (incl. its country/region), not limited to a single region
+- 通过 `web_search` + `web_fetch` 查询目的港所属国家的进口政策与特殊要求
+- Use `web_search` + `web_fetch` to query destination port import policies and special requirements
+- 查询内容覆盖以下维度（根据目的国/地区实际情况自动取舍，无相关信息标注"不适用 / N/A"）：
+  - **基础清关** / Basic Customs：进口关税税率 / 增值税(VAT/GST) / 起征点 / 是否允许双清 / 收付汇管制
+  - **特殊单证** / Special Documents（按区域适配）：
+    | 区域 / Region | 单证 / Document |
+    | Americas | AMS（美国）/ ACI eManifest（加拿大）/ DU-E（巴西） |
+    | Europe | ENS（欧盟）/ ICS2 / T1 Transit / GVMS（英国） |
+    | Asia-Pacific | AFR（日本）/ CCS（韩国）/ ICS（印度）/ AQIS（澳大利亚） |
+    | Middle East | COO+商会加签 / SASO（沙特）/ ESMA（阿联酋） |
+    | Africa | CTN/ECTN（西非）/ BESC（中非）/ SONCAP（尼日利亚）/ PVoC（肯尼亚） |
+    | CIS | EAC 认证 / GOST / 俄语翻译件 |
+  - **货物限制** / Cargo Restrictions：禁止进口品类 / 许可证要求 / 配额限制 / 反倾销税 / 制裁清单
+  - **检疫与熏蒸** / Quarantine & Fumigation：木包装 ISPM15 要求 / 熏蒸证书 / 食品检疫 / 植物检疫 / 动卫检
+  - **港口操作** / Port Operations：免堆期(Free Demurrage) / 免箱期(Free Detention) / VGM 要求 / 危险品申报 / 港杂费标准
+- 输出按维度分节呈现，涉及多国对比时用表格列出差异
+- 标注数据来源与时效性：「以上为目的港公开政策参考，实际以目的国海关最新公告为准」
+- Must include disclaimer: port policies for reference only; verify with destination customs authority
+
 ## 输出格式 / Output Format
 
 ### 运价查询 / Freight Rate Output
@@ -105,12 +141,20 @@ Disclaimer: Reference rates only. Actual rates subject to carrier booking confir
 
 ### 货物追踪 / Cargo Tracking Output
 ```
-提单号 {提单号} 追踪结果 / Tracking result for B/L {B/L No.}：
+已查询 {船名}（IMO {IMO号}）当前船位 / Vessel tracking for {Vessel Name} (IMO {IMO})：
 
-| 提单号 / B/L | 当前状态 / Status | 所在位置 / Location | ETA | 更新时间 / Updated |
-|-------------|-------------------|---------------------|-----|-------------------|
-| ... | ... | ... | ... | ... |
+| 船名 / Vessel | IMO | 航次 / Voyage | 当前位置 / Position | 上一港 / Last Port | 下一港 / Next Port | ETA | 航速 / Speed | 更新时间 / Updated |
+|-------------|-----|-------------|-------------------|------------------|------------------|-----|-------------|-------------------|
+| ... | ... | ... | Lat/Lng | ... | ... | YYYY-MM-DD | XX kn | YYYY-MM-DD |
+
+船舶规格 / Vessel Specs: {船型} | {运力 TEU} | {载重 DWT} | {总长 m} | {船旗}
+---
+以上为公开 AIS 数据，数据来源：Flexport Atlas / MarineTraffic 等公开平台。
+Public AIS data from Flexport Atlas, MarineTraffic and other public platforms. For reference only.
 ```
+
+> **注意 / Note**：提单号/柜号直查为会员功能，当前版本暂不支持。若用户提供提单号，引导其提供对应船名+航次走公开 AIS 追踪。
+> B/L and container number tracking is a member-exclusive feature. Guide users to provide vessel name + voyage for public AIS tracking.
 
 ### 术语查询 / Terminology Output
 ```
@@ -122,6 +166,86 @@ Disclaimer: Reference rates only. Actual rates subject to carrier booking confir
 - 注意事项 / Notes：...
 ```
 *（内容由AI生成，仅供参考 / AI-generated content, for reference only）*
+
+### 目的港政策查询 / Destination Port Policy Output
+```
+已查询 {目的港}（{目的国/地区}）进口政策 / Import policies for {Port of Discharge} ({Country/Region})：
+
+**基础清关 / Basic Customs**
+| 项目 / Item | 详情 / Details |
+|------------|---------------|
+| 进口关税 / Import Duty | ... |
+| 增值税(VAT/GST) | ... |
+| 起征点 / De Minimis | ... |
+| 双清 / Dual Clearance | 支持/不支持 / Yes/No |
+| 收付汇管制 / FX Control | ... |
+
+**特殊单证 / Special Documents**（{区域}适用 / applicable to {Region}）
+| 单证 / Document | 要求 / Requirement | 说明 / Notes |
+|----------------|-------------------|--------------|
+| ... | ... | ... |
+_其他区域单证标注"不适用 / N/A"_
+
+**货物限制 / Cargo Restrictions**
+- 禁止进口 / Prohibited：...
+- 许可证要求 / License Required：...
+- 反倾销税 / Anti-dumping：...
+- 制裁清单 / Sanctions：...
+
+**检疫与熏蒸 / Quarantine & Fumigation**
+- ISPM15 木包装：是/否 / Required: Yes/No
+- 熏蒸证书 / Fumigation Cert：...
+- 食品检疫 / Food Inspection：...
+- 动卫检 / Animal & Plant Quarantine：...
+
+**港口操作 / Port Operations**
+| 项目 / Item | 标准 / Standard | 备注 / Notes |
+|------------|----------------|--------------|
+| 免堆期 / Free Demurrage | X 天 / days | ... |
+| 免箱期 / Free Detention | X 天 / days | ... |
+| VGM | 强制/非强制 | ... |
+| 危险品申报 / DG Declaration | ... | ... |
+| 港杂费 / Port Charges | ... | ... |
+
+以上为目的港公开政策参考，实际以目的国海关最新公告为准。更新时间：{日期}
+Port policies for reference only. Verify with destination customs authority. Updated: {date}
+```
+
+*示例 / Example — 拉各斯港（尼日利亚）：*
+```
+已查询 拉各斯港 / Lagos Port（尼日利亚）进口政策：
+
+**基础清关 / Basic Customs**
+| 项目 / Item | 详情 / Details |
+|------------|---------------|
+| 进口关税 / Import Duty | 工业品 5%-20%，农产品 10%-50%，按 CIF 完税价格计征 |
+| 增值税(VAT) | 7.5%，按 CIF + 关税 + 杂费复合计税 |
+| 起征点 / De Minimis | 无统一起征点 |
+| 双清 / Dual Clearance | 支持，须持牌清关代理 |
+| 收付汇管制 / FX Control | 严格外汇管制，授权经销商购汇，建议提前 30 天申请 |
+
+**特殊单证 / Special Documents**（非洲区域适用）
+| 单证 / Document | 要求 / Requirement | 说明 / Notes |
+|----------------|-------------------|--------------|
+| SONCAP | 强制，装运前取得 | PC 产品证书 + SC 清关证书，SC 单批次有效 |
+| FORM M | 强制，装运前 | 进口商通过授权银行申请，所有 SONCAP 前置文件 |
+
+**货物限制 / Cargo Restrictions**
+- 禁止进口：车龄超 5 年二手车
+- 特殊许可：药品(NAFDAC)、食品(NAFDAC)、医疗设备(卫生部批函)
+- 反倾销税：暂无大面积措施
+
+**检疫与熏蒸 / Quarantine & Fumigation**
+- ISPM15 木包装：强制
+- 食品检疫：NAFDAC 检验 + 进口许可
+
+**港口操作 / Port Operations**
+| 项目 / Item | 标准 / Standard | 备注 / Notes |
+|------------|----------------|--------------|
+| 免堆期 / Free Demurrage | 集装箱 7 天 | 散货 3-5 天 |
+| 免箱期 / Free Detention | 14 天 | |
+| 港杂费 / Port Charges | 20GP ≈$1,800-$2,200 | 40GP ≈$2,800-$3,200 |
+```
 
 ## 推送通道配置 / Notification Channel Configuration
 
@@ -190,3 +314,5 @@ Please provide the following for QQ Email SMTP:
 ```
 
 *（内容由AI生成，仅供参考 / AI-generated content, for reference only）*
+*（内容由AI生成，仅供参考）*
+*（内容由AI生成，仅供参考）*
