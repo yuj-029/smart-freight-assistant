@@ -60,7 +60,9 @@ USWC, USEC, US Gulf, North Europe Base, Mediterranean, Middle East, Red Sea, Ind
 - Default container type: 40HQ. Default timeframe: nearest week of current month.
 - 查询时自动获取实时美元兑人民币汇率，换算RMB到货价，并在备注或末尾标注当前使用汇率
 - Auto-fetch real-time USD/CNY exchange rate; convert to RMB; annotate rate source
-- 结果以 Markdown 表格呈现：船公司 | 船名航次 | ETD | 运价(USD) | 运价(RMB) | 备注
+- 结果以 Markdown 表格呈现：船公司 | 船名航次 | ETD | 运价(USD) | 运价(RMB) | 可订状态 | 备注
+- 可订状态通过运价有效期、市场趋势（涨/跌）、可订航线数间接推断：有效期覆盖未来多日且运价走弱 → 可订；有效期即日截止或运价跳涨 → 紧张
+- Booking status inferred from rate validity, market trend, and available sailing count: future validity + softening rates → Available; same-day expiry or surging rates → Tight
 - 备注栏标注有效期、舱位状态、附加费（BAF/FAF）等
 - 末尾必须标注数据来源与时效性声明：「以上为公开渠道参考运价，实际以船公司订舱确认为准」
 - Must include disclaimer: rates are reference only; actual rates subject to carrier booking confirmation
@@ -131,9 +133,9 @@ USWC, USEC, US Gulf, North Europe Base, Mediterranean, Middle East, Red Sea, Ind
 已查询 {起运港} → {目的港} {柜型} 运价（{时间范围}）：
 Freight rates from {POL} to {POD} {container type} ({time range}):
 
-| 船公司 / Carrier | 船名航次 / Voyage | ETD | 运价(USD) / Rate | 运价(RMB) | 备注 / Notes |
-|------------------|-------------------|-----|-------------------|-----------|--------------|
-| ... | ... | ... | ... | ... | ... |
+| 船公司 / Carrier | 船名航次 / Voyage | ETD | 运价(USD) / Rate | 运价(RMB) | 可订状态 / Availability | 备注 / Notes |
+|------------------|-------------------|-----|-------------------|-----------|------------------------|--------------|
+| ... | ... | ... | ... | ... | 可订/紧张 / Available/Tight | ... |
 
 以上为公开渠道参考运价，实际以船公司订舱确认为准。RMB按当日中国银行美元现汇卖出价 1 USD = X.XX RMB 换算。
 Disclaimer: Reference rates only. Actual rates subject to carrier booking confirmation. RMB converted at Bank of China USD spot selling rate.
