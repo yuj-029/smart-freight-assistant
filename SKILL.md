@@ -1,17 +1,6 @@
----
-AIGC:
-    Label: "1"
-    ContentProducer: 001191440300708461136T1XGW3
-    ProduceID: 5cb1b25772f6b0aafa9bcb1a8e5ab88d_acc98c34928211f1a102525400826444
-    ReservedCode1: 2XZOBcINN0XGz3ab9/exPAg8boGROP7R9SqGrPS52zhJEdktB7mF2Q5IDoWejz3jJ1QyZbUsyTfGJzKMUSiAZfFBqICReL9P0cY5XPP0JI0KwpoWrTE/klRr8jt146bdbRNb5GbmwjHDbj4m678/48zGSGFxh3vWgxd/RmBlbAkwaN2j5gOcx2FdoB8=
-    ContentPropagator: 001191440300708461136T1XGW3
-    PropagateID: 5cb1b25772f6b0aafa9bcb1a8e5ab88d_acc98c34928211f1a102525400826444
-    ReservedCode2: 2XZOBcINN0XGz3ab9/exPAg8boGROP7R9SqGrPS52zhJEdktB7mF2Q5IDoWejz3jJ1QyZbUsyTfGJzKMUSiAZfFBqICReL9P0cY5XPP0JI0KwpoWrTE/klRr8jt146bdbRNb5GbmwjHDbj4m678/48zGSGFxh3vWgxd/RmBlbAkwaN2j5gOcx2FdoB8=
----
-
-
-
 # 智能货代助手
+
+> 国际物流智能助手：运价查询、船期追踪、汇率换算、术语百科，支持四通道推送通知
 
 ## 触发时机
 
