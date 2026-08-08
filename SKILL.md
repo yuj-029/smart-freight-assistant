@@ -16,7 +16,7 @@ AIGC:
 > International logistics AI assistant: freight rate inquiry, vessel tracking, FX conversion, destination port policies, and terminology lookup with four-channel push notifications.
 > 国际物流智能助手：运价查询、船期追踪、汇率换算、目的港政策、术语百科，支持四通道推送通知。
 >
-> **版本 / Version**: v1.2 | **更新 / Updated**: 2026-08-08
+> **版本 / Version**: v1.3 | **更新 / Updated**: 2026-08-08
 
 ## 触发时机 / When to Activate
 
@@ -73,6 +73,10 @@ USWC, USEC, US Gulf, North Europe Base, Mediterranean, Middle East, Red Sea, Ind
 - Default container type: 40HQ. Default timeframe: nearest week of current month.
 - **柜型标准化映射**：各平台柜型名称不统一，输出时统一转换——40HQ = 40HC = 40'High Cube → 统一输出为「40HQ」；40GP = 40FT = 40'Standard → 统一输出为「40GP」。若数据源仅有笼统的 "40FT container" 无法区分 GP/HC，标注「40FT（未区分 GP/HC）」。
 - **Container type normalization**: Different platforms use different names. Normalize on output: 40HQ = 40HC = 40'High Cube; 40GP = 40FT = 40'Standard. If source only gives "40FT" without GP/HC distinction, output as "40FT (GP/HC unspecified)".
+- **有效期校验与过期过滤**：每条运价输出前必须校验有效期（valid_until 字段）。若有效期 < 当前日期，该运价已过期，**必须排除**，不得出现在输出表格中。排除时在内部日志记录排除原因，最终输出时仅呈现有效或有效期不明的运价。
+- **Validity filtering**: Before output, check each rate's valid_until date. Expired rates (valid_until < today) **must be excluded** from the output table. Log exclusions internally; only output valid rates or rates with unknown validity.
+- **双源口径强制标注**：运价来自不同数据源时，价格口径可能不同（如 ShippingEuro 为 net ocean 基础海运费不含附加费，Flexport 为 all-in 含 BAF/FAF/DOC FEE）。输出时必须在备注栏明确标注费用口径，**禁止将不同费率类型的价格混合比较**。若同一航线存在多种口径的报价，在备注栏分别标注 `[net ocean]`（仅基础海运费）或 `[all-in]`（含常见附加费），并在表格下方注记：「⚠ 运价口徑不同——net ocean 仅含基础海运费，all-in 含 BAF/FAF/DOC FEE，分开对比。」
+- **Source type labeling**: Different sources may quote different rate types (e.g., net ocean basic freight vs all-in including surcharges). **Label each rate's source type** in the notes column: `[net ocean]` or `[all-in]`. **Do not mix rates of different types for direct comparison.** If both types exist for the same route, add a note below the table explaining the difference.
 - **数据完整度分级展示**：运价数据因航线冷热不同而数据完整度参差。输出时按完整度分级标注：
 
   | 完整度 / Level | 条件 / Criteria | 标注 / Badge |
@@ -108,7 +112,17 @@ USWC, USEC, US Gulf, North Europe Base, Mediterranean, Middle East, Red Sea, Ind
   3. 提示："未找到 '{用户输入}'，AIS 平台要求精确英文船名或 IMO 号。请提供完整船名（如 COSCO SURABAYA）或 IMO 编号。"
 - 自动提取：IMO / 当前经纬度 / 航行状态 / 上一港+离港时间 / 下一港+ETA / 航速 / 目的港
 - **ETA 时区规范**：所有 ETA 必须同时标注 UTC 和当地时区，格式：`2026-08-10 04:00 UTC（新加坡时间 12:00）`
-- **AIS 覆盖说明**：AIS 数据刷新频率取决于海域——近海靠岸基站更新可达 1 分钟级，远洋靠卫星覆盖更新可能延迟数小时。输出时必须标注数据刷新时间。若 AIS 更新时间超过 6 小时，加注提示："⚠ AIS 数据已 X 小时未更新，船位可能有偏差。"
+- **AIS 覆盖说明**：AIS 数据刷新频率取决于海域——近海靠岸基站更新可达 1 分钟级，远洋靠卫星覆盖更新可能延迟数小时。输出时必须标注数据刷新时间，并按以下分级标注时效：
+- **AIS freshness tiering**:
+
+  | 时效级别 / Tier | 更新时间 / Update Age | 标注 / Badge | 说明 / Notes |
+  |----------------|----------------------|-------------|-------------|
+  | 🟢 实时 / Fresh | &lt; 1 小时 | `[实时]` | 靠岸或近海基站覆盖 |
+  | 🟡 稍旧 / Recent | 1–6 小时 | `[稍旧]` | 近海航行，可能有小偏差 |
+  | 🟠 滞后 / Stale | 6–24 小时 | `[滞后]` | 远洋卫星覆盖，偏差可能较大 |
+  | 🔴 严重滞后 / Outdated | &gt; 24 小时 | `[严重滞后]` | 数据严重过时，船位不可靠 |
+
+  若 AIS 更新时间超过 6 小时，在输出末尾加注："⚠ AIS 数据已 X 小时未更新，船位可能有偏差。"
 - 输出格式见下方「货物追踪输出格式」
 - 无法查到结果时如实告知，并建议用户提供完整英文船名或 IMO 号重试
 
@@ -120,8 +134,8 @@ USWC, USEC, US Gulf, North Europe Base, Mediterranean, Middle East, Red Sea, Ind
 - **二期计划**：注册 51Tracking 免费 API → 端到端验证 → 上线提单号/柜号追踪
 
 ### 3. 汇率查询 / Exchange Rate Inquiry
-- 通过 web_search 获取人民币兑美元/欧元/英镑等主要币种**即时汇率**
-- Fetch real-time CNY exchange rates against USD, EUR, GBP and other major currencies
+- 通过 web_search 获取人民币兑美元/欧元/英镑等主要币种**每日牌价**（非实时，BOC 仅工作日更新）
+- Fetch daily CNY exchange rates against USD, EUR, GBP and other major currencies (not real-time; BOC updates on workdays only)
 - **双向报价**：必须同时输出**现汇买入价**（你收外币卖给银行）和**现汇卖出价**（你付外币从银行买），注明适用场景：
   ```
   付汇（你付美元给船公司）→ 用卖出价
@@ -208,9 +222,9 @@ Disclaimer: Reference rates only. Actual rates subject to carrier booking confir
 ```
 已查询 {船名}（IMO {IMO号}）当前船位 / Vessel tracking for {Vessel Name} (IMO {IMO})：
 
-| 船名 / Vessel | IMO | 当前位置 / Position | 上一港 / Last Port | 下一港 / Next Port | ETA (UTC / 当地) | 航速 / Speed | AIS更新 / Updated |
-|-------------|-----|-------------------|------------------|------------------|-------------------|-------------|------------------|
-| ... | ... | ... | ... | ... | YYYY-MM-DD HH:MM UTC（当地时间 HH:MM） | XX kn | X分钟/小时前 |
+| 船名 / Vessel | IMO | 当前位置 / Position | 上一港 / Last Port | 下一港 / Next Port | ETA (UTC / 当地) | 航速 / Speed | AIS更新 / Updated | 时效 / Freshness |
+|-------------|-----|-------------------|------------------|------------------|-------------------|-------------|------------------|------------------|
+| ... | ... | ... | ... | ... | YYYY-MM-DD HH:MM UTC（当地时间 HH:MM） | XX kn | X分钟/小时前 | [实时]/[稍旧]/[滞后]/[严重滞后] |
 
 船舶规格 / Vessel Specs: {船型} | {运力 TEU} | {载重 DWT} | {总长 m} | {船旗}
 ---
@@ -390,3 +404,12 @@ Please provide the following for QQ Email SMTP:
 
 *（内容由AI生成，仅供参考 / AI-generated content, for reference only）*
 *（内容由AI生成，仅供参考）*
+
+## 版本日志 / Changelog
+
+### v1.3 (2026-08-08)
+- **[运价] 过期过滤**：新增有效期校验规则，输出前排除已过期的运价（valid_until < 当日）
+- **[运价] 双源口径标注**：强制区分 `[net ocean]` 与 `[all-in]` 费用口径，禁止不同口径价格混合对比
+- **[汇率] 用语修正**：将"即时汇率/real-time"改为"每日牌价/daily"，明确 BOC 仅工作日更新
+- **[追踪] AIS 时效分级**：新增四级时效标注体系（实时/稍旧/滞后/严重滞后），替换原单一 6h 阈值
+- **[追踪] 输出模板**：追踪表新增「时效 / Freshness」列，直观展示 AIS 数据可信度
