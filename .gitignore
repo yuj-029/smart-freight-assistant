@@ -1,0 +1,60 @@
+# ============================================
+# 私有层 — 严禁提交到公开仓库
+# ============================================
+
+# 环境变量 / API 密钥
+.env
+.env.*
+*.secret
+credentials.json
+secrets.yaml
+
+# 私有实现代码
+private/
+
+# 内部文档（非公开）
+docs/internal/
+
+# 本地报告文件
+*测试报告*.md
+*测试报告*.docx
+*测试梳理报告*.md
+*测试梳理报告*.docx
+*缺陷测试报告*.md
+*缺陷测试报告*.docx
+*演示手册*.md
+*演示手册*.docx
+*需求文档*.md
+*需求文档*.docx
+*版本日志*.md
+*版本日志*.docx
+*商业计划书*.md
+*商业计划书*.docx
+*技术方案*.md
+*技术方案*.docx
+
+# 操作系统
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Node
+node_modules/
+npm-debug.log
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# 日志
+*.log
+logs/
