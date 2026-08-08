@@ -16,7 +16,7 @@ AIGC:
 > International logistics AI assistant: freight rate inquiry, vessel tracking, FX conversion, destination port policies, and terminology lookup with four-channel push notifications.
 > 国际物流智能助手：运价查询、船期追踪、汇率换算、目的港政策、术语百科，支持四通道推送通知。
 >
-> **版本 / Version**: v1.3 | **更新 / Updated**: 2026-08-08
+> **版本 / Version**: v1.3.1 | **更新 / Updated**: 2026-08-08
 
 ## 触发时机 / When to Activate
 
@@ -90,6 +90,8 @@ USWC, USEC, US Gulf, North Europe Base, Mediterranean, Middle East, Red Sea, Ind
 - **费用口径标注**：运价旁必须标注费用口径（费用口径指该价格包含/不包含哪些附加费项），避免用户误以为全包价：
   - 若数据源明确报价组成：标注「含基础海运费，不含 BAF/FAF/OTHC/DOC FEE」
   - 若数据源未说明：标注「费用口径未明确，请以船公司订舱确认为准」
+- **口径不明源头强制标注**：对于数据来源的运价性质无法判断为 net ocean 或 all-in 的情况（如 BRF / Baltic 等第三方指数平台），必须标注 `[口径不明]`。**禁止对口径不明的运价做 net ocean 或 all-in 的推断**，更禁止将其与已明确口径的运价做同口径对比。输出时在备注栏标注：「[口径不明] 该来源运价口径未披露，无法判断是否含附加费，请以船公司订舱确认为准。」
+- **Unclear rate type handling**: For sources where the rate type cannot be determined (e.g., BRF / Baltic index platforms), label as `[口径不明]`. **Do not infer net ocean vs all-in for unclear sources**, and do not compare them directly with rates of known type. Annotate: "Rate type undisclosed; cannot determine whether surcharges are included."
 - 查询时自动获取美元兑人民币汇率，换算RMB到货价。**汇率必须同时输出买入价和卖出价**，注明适用场景（付汇用卖出价 / 收汇用买入价）。在备注或末尾标注汇率数据截止日期。**若当前日期为周六/周日或法定节假日，汇率可能滞后（BOC 仅工作日更新），须加注："⚠ 汇率数据截至 X 月 X 日（最近工作日），周末/节假日不更新，实际以银行实时牌价为准。"**
 - Auto-fetch USD/CNY exchange rate. **Must output both buying and selling rates** with usage notes (selling rate for paying carriers, buying rate for receiving from clients). Annotate rate data cutoff date. **On weekends/holidays, warn: "⚠ FX data as of {last workday}. Banks do not update on weekends/holidays."**
 - 结果以 Markdown 表格呈现：船公司 | 船名航次 | ETD | 运价(USD) | 运价(RMB) | 可订状态 | 备注
@@ -121,6 +123,13 @@ USWC, USEC, US Gulf, North Europe Base, Mediterranean, Middle East, Red Sea, Ind
   | 🟡 稍旧 / Recent | 1–6 小时 | `[稍旧]` | 近海航行，可能有小偏差 |
   | 🟠 滞后 / Stale | 6–24 小时 | `[滞后]` | 远洋卫星覆盖，偏差可能较大 |
   | 🔴 严重滞后 / Outdated | &gt; 24 小时 | `[严重滞后]` | 数据严重过时，船位不可靠 |
+
+- **港序/船期表 vs 实时 AIS 严格区分**：船公司公布的船期表（港序数据 / port rotation）与实时 AIS 船位数据是两类截然不同的数据源。港序数据为计划的港口顺序和时间，不等同于船舶实时位置。输出时必须标注数据来源类型：
+  - 来自船期表/港序数据 → 标注 `[港序]` 并注明"非实时船位，为船公司计划港序"
+  - 来自 AIS 平台实时数据 → 标注时效级别（`[实时]`/`[稍旧]`/`[滞后]`/`[严重滞后]`）
+  - **禁止将港序数据的"下一港"直接当作实时船位输出**，否则用户可能误判船舶真实位置。
+- **港序预测 vs AIS 实测对比**：若同时有港序数据和 AIS 数据，并排展示时必须明确区分：港序列标注「计划」或用 `[港序]` 标签，AIS 列标注「实测」或时效级别。若港序中下一港与 AIS 实测下一港不一致，在备注中标注差异并提示"以 AIS 实测为准"。
+- Strict separation of port rotation (schedule) vs real-time AIS: port rotation from carrier schedules shows planned sequence, not real-time position. Label schedule data as `[港序]` with "非实时船位"; label AIS data with freshness tier. **Do not present port rotation's "next port" as real-time vessel position.**
 
   若 AIS 更新时间超过 6 小时，在输出末尾加注："⚠ AIS 数据已 X 小时未更新，船位可能有偏差。"
 - 输出格式见下方「货物追踪输出格式」
@@ -168,7 +177,7 @@ USWC, USEC, US Gulf, North Europe Base, Mediterranean, Middle East, Red Sea, Ind
   - 汇率：周末/节假日 → 提示汇率为最近工作日牌价
   - 目的港政策：数据源超过 6 个月 → 提示"政策可能已更新，请以目的国海关最新公告为准"
   - 术语：引用 Incoterms 旧版本 → 提示版本差异
-- **数据完整度分级通用原则**：输出模板为理想场景设计，当实际数据不满足模板要求时（如无船名、无 ETD），该列**留空并标注「—」**而非删除整行或编造数据。输出末尾按上述「降级提示」规则标注置信度。
+- **数据完整度分级通用原则**：输出模板为理想场景设计，当实际数据不满足模板要求时，该列留空并标注而非删除整行或编造数据。**特别地：船名航次缺失时标注「请联系船公司确认船名航次」**（而非仅标「—」），ETD / 运价等缺失时标注「—」。输出末尾按上述「降级提示」规则标注置信度。运价类输出末尾统一追加免责标注：「船名航次缺失的报价请向船公司确认后使用。」
 
 ### 6. 目的港政策查询 / Destination Port Policy Inquiry
 - **全球覆盖**：支持查询全球任意目的港（含其所属国家/地区）的进口政策与特殊要求，不仅限于单一区域
@@ -406,6 +415,11 @@ Please provide the following for QQ Email SMTP:
 *（内容由AI生成，仅供参考）*
 
 ## 版本日志 / Changelog
+
+### v1.3.1 (2026-08-08)
+- **[追踪] 港序 vs AIS 区分**：新增船期表港序数据与实时 AIS 的严格区分规则，港序数据标注 `[港序]` 并注明"非实时船位"，禁止将计划港序当作实时船位输出
+- **[运价] 船名航次缺失处理**：船名航次缺失时标注「请联系船公司确认船名航次」而非仅标「—」，输出末尾追加免责提示
+- **[运价] 口径不明强制标注**：BRF / Baltic 等第三方指数平台无法判断 net ocean 或 all-in 时标注 `[口径不明]`，禁止推断或同口径对比
 
 ### v1.3 (2026-08-08)
 - **[运价] 过期过滤**：新增有效期校验规则，输出前排除已过期的运价（valid_until < 当日）
