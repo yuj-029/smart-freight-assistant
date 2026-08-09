@@ -51,8 +51,8 @@ FOB、CIF、CFR、DDP、DAP、EXW、FCA、CPT、CIP、DAT、DDU
 2M联盟、海洋联盟、Ocean Alliance、THE联盟
 
 ### 航线方向 / Trade Lanes
-美西、美东、美湾、欧基港、地中海、中东、红海、印巴、东南亚、南美西、南美东、西非、东非、南非、澳新、日韩、台湾线、俄罗斯、波罗的海、黑海、中亚班列、中欧班列
-USWC, USEC, US Gulf, North Europe Base, Mediterranean, Middle East, Red Sea, India/Pakistan, Southeast Asia, South America West Coast, South America East Coast, West Africa, East Africa, South Africa, Australia/New Zealand, Japan/Korea, Taiwan Strait, Russia, Baltic Sea, Black Sea, Central Asia Railway, China-Europe Railway Express
+美西、美东、美湾、欧基港、地中海、中东、红海、印巴、东南亚、南美西、南美东、西非、东非、南非、澳新、日韩、中国台湾线、俄罗斯、波罗的海、黑海、中亚班列、中欧班列
+USWC, USEC, US Gulf, North Europe Base, Mediterranean, Middle East, Red Sea, India/Pakistan, Southeast Asia, South America West Coast, South America East Coast, West Africa, East Africa, South Africa, Australia/New Zealand, Japan/Korea, China Taiwan Strait, Russia, Baltic Sea, Black Sea, Central Asia Railway, China-Europe Railway Express
 
 ### 港口 / Ports
 洋山港、外高桥、北仑港、盐田港、蛇口港、广州港、厦门港、天津港、大连港、青岛港、连云港、福州港、太仓港、海口港、釜山、东京、横滨、神户、胡志明、林查班、巴生港、丹戎帕拉帕斯、新加坡港、科伦坡、杰贝阿里、迪拜、安特卫普、费利克斯托、勒阿弗尔、比雷埃夫斯、瓦伦西亚、巴塞罗那、热那亚、格但斯克、哥德堡、纽约、萨凡纳、休斯顿、温哥华、长滩、奥克兰、查尔斯顿、诺福克、迈阿密、桑托斯、布宜诺斯艾利斯、卡亚俄、德班、开普敦、拉各斯、蒙巴萨、达累斯萨拉姆、悉尼、墨尔本、布里斯班、奥克兰、陶朗加
@@ -99,8 +99,8 @@ USWC, USEC, US Gulf, North Europe Base, Mediterranean, Middle East, Red Sea, Ind
 - 查询时自动获取美元兑人民币汇率，换算RMB到货价。**汇率必须同时输出买入价和卖出价**，注明适用场景（付汇用卖出价 / 收汇用买入价）。在备注或末尾标注汇率数据截止日期。**若当前日期为周六/周日或法定节假日，汇率可能滞后（BOC 仅工作日更新），须加注："⚠ 汇率数据截至 X 月 X 日（最近工作日），周末/节假日不更新，实际以银行实时牌价为准。"**
 - Auto-fetch USD/CNY exchange rate. **Must output both buying and selling rates** with usage notes (selling rate for paying carriers, buying rate for receiving from clients). Annotate rate data cutoff date. **On weekends/holidays, warn: "⚠ FX data as of {last workday}. Banks do not update on weekends/holidays."**
 - 结果以 Markdown 表格呈现：船公司 | 船名航次 | ETD | 运价(USD) | 运价(RMB) | 可订状态 | 备注
-- 可订状态通过运价有效期、市场趋势（涨/跌）、可订航线数间接推断：有效期覆盖未来多日且运价走弱 → 可订；有效期即日截止或运价跳涨 → 紧张
-- Booking status inferred from rate validity, market trend, and available sailing count: future validity + softening rates → Available; same-day expiry or surging rates → Tight
+- 可订状态基于「运价有效期」与「数据源明确披露的舱位/船期状态」推断，不依赖无法获取的外部信号：有效期覆盖未来多日且未标注舱位紧张 → 可订 `[可订]`；有效期即日截止或数据源标注舱位紧张/爆仓 → 紧张 `[紧张]`。若数据源未披露舱位状态，默认按有效期判断并在备注标注「舱位状态未披露」。
+- Booking status is inferred from rate validity and any explicitly disclosed cabin/space status only — not from unavailable market trend or sailing count: future validity with no space warning → Available `[可订]`; same-day expiry or source-flagged space shortage → Tight `[紧张]`. If the source discloses no space status, judge by validity and annotate "space status undisclosed".
 - 备注栏标注有效期、舱位状态、费用口径（如「不含 BAF/FAF」）
 - 末尾必须标注数据来源、汇率截止日期与时效性声明：「以上为公开渠道参考运价，实际以船公司订舱确认为准。」
 - Must include disclaimer: rates are reference only; actual rates subject to carrier booking confirmation.
@@ -123,10 +123,10 @@ USWC, USEC, US Gulf, North Europe Base, Mediterranean, Middle East, Red Sea, Ind
 
   | 时效级别 / Tier | 更新时间 / Update Age | 标注 / Badge | 说明 / Notes |
   |----------------|----------------------|-------------|-------------|
-  | 🟢 实时 / Fresh | &lt; 1 小时 | `[实时]` | 靠岸或近海基站覆盖 |
-  | 🟡 稍旧 / Recent | 1–6 小时 | `[稍旧]` | 近海航行，可能有小偏差 |
-  | 🟠 滞后 / Stale | 6–24 小时 | `[滞后]` | 远洋卫星覆盖，偏差可能较大 |
-  | 🔴 严重滞后 / Outdated | &gt; 24 小时 | `[严重滞后]` | 数据严重过时，船位不可靠 |
+  | 🟢 实时 / Fresh | ≤ 4 小时 | `[实时]` | 近海基站覆盖，船位可靠 |
+  | 🟡 稍旧 / Recent | 4–12 小时 | `[稍旧]` | 近海或近洋航行，可能有小偏差 |
+  | 🟠 滞后 / Stale | 12–48 小时 | `[滞后]` | 远洋卫星覆盖，偏差可能较大 |
+  | 🔴 严重滞后 / Outdated | &gt; 48 小时 | `[严重滞后]` | 数据严重过时，船位不可靠 |
 
 - **港序/船期表 vs 实时 AIS 严格区分**：船公司公布的船期表（港序数据 / port rotation）与实时 AIS 船位数据是两类截然不同的数据源。港序数据为计划的港口顺序和时间，不等同于船舶实时位置。输出时必须标注数据来源类型：
   - 来自船期表/港序数据 → 标注 `[港序]` 并注明"非实时船位，为船公司计划港序"
@@ -135,8 +135,8 @@ USWC, USEC, US Gulf, North Europe Base, Mediterranean, Middle East, Red Sea, Ind
 - **港序预测 vs AIS 实测对比**：若同时有港序数据和 AIS 数据，并排展示时必须明确区分：港序列标注「计划」或用 `[港序]` 标签，AIS 列标注「实测」或时效级别。若港序中下一港与 AIS 实测下一港不一致，在备注中标注差异并提示"以 AIS 实测为准"。
 - Strict separation of port rotation (schedule) vs real-time AIS: port rotation from carrier schedules shows planned sequence, not real-time position. Label schedule data as `[港序]` with "非实时船位"; label AIS data with freshness tier. **Do not present port rotation's "next port" as real-time vessel position.**
 
-  若 AIS 更新时间超过 6 小时，在输出末尾加注："⚠ AIS 数据已 X 小时未更新，船位可能有偏差。"
-  若 AIS 更新时间超过 24 小时（[严重滞后]），除上述警告外，额外追加提示："建议改为查询船公司港序数据（标注 [港序]）作为替代参考。可通过 SeaRates 或船公司官网 schedule 页获取计划港序。"
+  若 AIS 更新时间超过 12 小时（进入 `[滞后]` 及以上），在输出末尾加注："⚠ AIS 数据已 X 小时未更新，船位可能有偏差。"
+  若 AIS 更新时间超过 48 小时（[严重滞后]），除上述警告外，额外追加提示："建议改为查询船公司港序数据（标注 [港序]）作为替代参考。可通过 SeaRates 或船公司官网 schedule 页获取计划港序。"
 - 输出格式见下方「货物追踪输出格式」
 - 无法查到结果时如实告知，并建议用户提供完整英文船名或 IMO 号重试
 
