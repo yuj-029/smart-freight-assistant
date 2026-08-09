@@ -1,4 +1,6 @@
 ---
+name: smart-freight-assistant
+description: 智能货代助手 — 国际物流运价查询、船期追踪、汇率换算、目的港政策、术语百科
 AIGC:
     Label: "1"
     ContentProducer: 001191440300708461136T1XGW3
