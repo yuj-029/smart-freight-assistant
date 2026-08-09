@@ -1,7 +1,7 @@
 {
   "name": "smart-freight-assistant",
   "version": "1.3.3",
-  "description": "当用户询问国际物流运价、船期追踪、汇率换算、目的港政策或货代术语时自动激活",
+  "description": "当用户询问国际物流运价、船期追踪、汇率换算、目的港政策或货代术语时自动激活。覆盖五大模块：运价查询、船期追踪、汇率换算、目的港政策、术语百科。",
   "author": "yuj-029",
   "license": "AGPL-3.0-only",
   "keywords": ["freight-forwarder", "shipping", "logistics", "ocean-freight", "货代"],
