@@ -1,6 +1,6 @@
 ---
 name: smart-freight-assistant
-description: 智能货代助手 — 国际物流运价查询、船期追踪、汇率换算、目的港政策、术语百科
+description: 当用户询问国际物流运价、船期追踪、汇率换算、目的港政策或货代术语时自动激活。覆盖五大模块：运价查询、船期追踪、汇率换算、目的港政策、术语百科。
 ---
 <!-- AIGC:
     Label: "1"
@@ -16,8 +16,8 @@ description: 智能货代助手 — 国际物流运价查询、船期追踪、�
 
 # 智能货代助手 / Smart Freight Assistant
 
-> International logistics AI assistant: freight rate inquiry, vessel tracking, FX conversion, destination port policies, and terminology lookup with four-channel push notifications.
-> 国际物流智能助手：运价查询、船期追踪、汇率换算、目的港政策、术语百科，支持四通道推送通知。
+> International logistics AI assistant: freight rate inquiry, vessel tracking, FX conversion, destination port policies, and terminology lookup.
+> 国际物流智能助手：运价查询、船期追踪、汇率换算、目的港政策、术语百科。
 >
 > **版本 / Version**: v1.3.3 | **更新 / Updated**: 2026-08-09
 
@@ -359,74 +359,7 @@ Port policies for reference only (data collected on {YYYY-MM-DD}). Verify with d
 以上为目的港公开政策参考（数据收录于 2026-08-08），实际以目的国海关最新公告为准。部分船公司可能提供差异化免堆/免箱期。
 ```
 
-## 推送通道配置 / Notification Channel Configuration
 
-当用户使用二期监控功能（定时盯箱、运价波动提醒等轮询监控类任务）时，Skill 引导用户选择推送通知通道，并保存为偏好配置。
-When using monitoring features (container tracking alerts, rate fluctuation alerts), the Skill guides the user to select a notification channel and saves the preference.
-
-### 可选通道 / Available Channels
-
-| 通道 / Channel | 标识 / ID | 所需配置 / Required Config | 适用场景 / Best For |
-|---------------|-----------|---------------------------|---------------------|
-| 企业微信机器人 / WeCom Bot | `wecom` | Webhook URL | 已有企业微信的团队 / Teams on WeCom |
-| 钉钉机器人 / DingTalk Bot | `dingtalk` | Webhook URL | 已有钉钉的团队 / Teams on DingTalk |
-| QQ邮箱 / QQ Email | `email` | SMTP 授权码 + 收发邮箱 / SMTP auth code + sender/receiver | 个人用户 / Individual users |
-| Bark（iOS） | `bark` | Bark Key | iOS 用户，轻量推送 / iOS users, lightweight push |
-
-### 交互流程 / Interaction Flow
-
-**首次使用监控功能时 / First-time monitoring setup**，Skill 主动询问推送偏好：
-
-```
-Marvis：监控到状态变化后，您希望如何接收通知？可选通道：
-How would you like to receive notifications? Available channels:
-
-1. 企业微信机器人 / WeCom Bot — 需提供群机器人 Webhook URL
-2. 钉钉机器人 / DingTalk Bot — 需提供群机器人 Webhook URL
-3. QQ邮箱 / QQ Email — 需开启 SMTP 服务并提供授权码
-4. Bark（iOS） — 需提供 Bark App 中的推送 Key
-
-请选择推送通道，后续可随时修改。
-Select a channel; you can change it anytime.
-```
-
-用户选择通道后，Skill 逐项引导配置并保存为本地偏好文件。
-
-**后续使用 / Subsequent use**：Skill 读取已保存的通道配置，直接执行监控任务。用户可通过对话修改通道（如"把推送换成钉钉" / "switch to DingTalk"）。
-
-### 对话示例 / Conversation Examples
-
-**场景 / Scenario：首次配置推送通道 / First-time channel setup**
-
-```
-用户 / User：帮我盯一下 COSU12345678，每4小时查一次
-Marvis：好的。检测到您是首次使用监控功能，请选择状态变化时的通知方式：
-First-time setup detected. Choose a notification channel:
-
-1. 企业微信机器人 / WeCom Bot
-2. 钉钉机器人 / DingTalk Bot
-3. QQ邮箱 / QQ Email
-4. Bark（iOS推送）
-
-请问选择哪个通道？ / Which channel?
-```
-
-**场景 / Scenario：切换推送通道 / Switching channels**
-
-```
-用户 / User：把推送方式改成邮箱 / Switch to email
-Marvis：请提供以下信息用于 QQ邮箱 SMTP 配置：
-Please provide the following for QQ Email SMTP:
-
-1. 您的 QQ邮箱地址（发件箱） / Your QQ email (sender)
-2. SMTP 授权码 / SMTP authorization code (QQ Mail → Settings → Account → POP3/SMTP)
-3. 接收通知的邮箱地址 / Recipient email (can be same as sender)
-
-请依次提供，我会更新配置。 / Provide in order; I'll update the config.
-```
-
-*（内容由AI生成，仅供参考 / AI-generated content, for reference only）*
-*（内容由AI生成，仅供参考）*
 
 ## 版本日志 / Changelog
 
