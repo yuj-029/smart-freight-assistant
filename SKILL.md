@@ -2,17 +2,6 @@
 name: smart-freight-assistant
 description: 当用户询问国际物流运价、船期追踪、汇率换算、目的港政策或货代术语时自动激活。覆盖五大基础模块（运价查询/船期追踪/汇率换算/目的港政策/术语百科）加四大监控模块（盯箱/截关/运价波动/到港提醒），支持四通道推送通知。
 ---
-<!-- AIGC:
-    Label: "1"
-    ContentProducer: 001191440300708461136T1XGW3
-    ProduceID: 5cb1b25772f6b0aafa9bcb1a8e5ab88d_2f84b214932111f18e22525400f8a581
-    ReservedCode1: BesMbzx4mDHhjx5wwYHii1VZ7aeqpeh0Rk0AWfceBqp6Idk84snDign+NpgPxmU3FUxXwHG3Na01TOvBs2GK+ZHTjoTMA645DIZqrHGxfrqIR6h36wkmtfVAuLFZIW7Jwn/bwpfMQnJqsQD1BjN8C5icWfaJlSg3r3m2s+khup0aUSg06RhffBo6Yc4=
-    ContentPropagator: 001191440300708461136T1XGW3
-    PropagateID: 5cb1b25772f6b0aafa9bcb1a8e5ab88d_2f84b214932111f18e22525400f8a581
-    ReservedCode2: BesMbzx4mDHhjx5wwYHii1VZ7aeqpeh0Rk0AWfceBqp6Idk84snDign+NpgPxmU3FUxXwHG3Na01TOvBs2GK+ZHTjoTMA645DIZqrHGxfrqIR6h36wkmtfVAuLFZIW7Jwn/bwpfMQnJqsQD1BjN8C5icWfaJlSg3r3m2s+khup0aUSg06RhffBo6Yc4=
--->
-
-
 
 # 智能货代助手 / Smart Freight Assistant
 
