@@ -16,7 +16,7 @@ AIGC:
 > International logistics AI assistant: freight rate inquiry, vessel tracking, FX conversion, destination port policies, and terminology lookup with four-channel push notifications.
 > 国际物流智能助手：运价查询、船期追踪、汇率换算、目的港政策、术语百科，支持四通道推送通知。
 >
-> **版本 / Version**: v1.3.2 | **更新 / Updated**: 2026-08-09
+> **版本 / Version**: v1.3.3 | **更新 / Updated**: 2026-08-09
 
 ## 触发时机 / When to Activate
 
@@ -427,7 +427,7 @@ Please provide the following for QQ Email SMTP:
 
 ## 版本日志 / Changelog
 
-### v1.3.2 (2026-08-09)
+### v1.3.3 (2026-08-09)
 - **[运价] 过期过滤强化**：校验规则从 2 级升为 5 级——增加「发布日期超过 3 天无有效期 → 视为过期」「无日期 → 标注日期不明」「强制输出校验摘要」。修复 v1.3.1 测试中 Skypace 已过期运价未被过滤的问题
 - **[追踪] 严重滞后兜底**：AIS 超过 24 小时时，追加港序替代方案建议（SeaRates / 船公司 schedule 页），修复 MSC INGRID 滞后 11 天时无替代引导的问题
 
