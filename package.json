@@ -1,0 +1,12 @@
+{
+  "name": "smart-freight-assistant",
+  "version": "1.0.0",
+  "description": "智能货代助手 — 国际物流运价查询、船期追踪、术语百科，支持四通道推送通知",
+  "author": "yuj-029",
+  "license": "AGPL-3.0-only",
+  "keywords": ["freight-forwarder", "shipping", "logistics", "ocean-freight", "货代"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yuj-029/smart-freight-assistant"
+  }
+}
