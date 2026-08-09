@@ -1,6 +1,6 @@
 ---
 name: smart-freight-assistant
-description: 当用户询问国际物流运价、船期追踪、汇率换算、目的港政策或货代术语时自动激活。覆盖五大模块：运价查询、船期追踪、汇率换算、目的港政策、术语百科。
+description: "当用户询问国际物流运价、船期追踪、汇率换算、目的港政策或货代术语时自动激活。覆盖五大模块：运价查询、船期追踪、汇率换算、目的港政策、术语百科。"
 metadata:
   version: 1.3.3
 ---
@@ -238,7 +238,7 @@ Disclaimer: Reference rates only. Actual rates subject to carrier booking confir
 | ... | ... | ... | ... | ... | YYYY-MM-DD HH:MM UTC（当地时间 HH:MM） | XX kn | X分钟/小时前 | [实时]/[稍旧]/[滞后]/[严重滞后] |
 
 船舶规格 / Vessel Specs: {船型} | {运力 TEU} | {载重 DWT} | {总长 m} | {船旗}
----
+***
 数据来源 / Source: {VesselFinder / MarineTraffic / MyShipTracking}
 {若AIS超过6小时未更新：⚠ AIS数据已X小时未更新，船位可能有偏差}
 以上为公开 AIS 数据，仅供参考。
