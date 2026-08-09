@@ -16,7 +16,7 @@ AIGC:
 > International logistics AI assistant: freight rate inquiry, vessel tracking, FX conversion, destination port policies, and terminology lookup with four-channel push notifications.
 > 国际物流智能助手：运价查询、船期追踪、汇率换算、目的港政策、术语百科，支持四通道推送通知。
 >
-> **版本 / Version**: v1.3.1 | **更新 / Updated**: 2026-08-08
+> **版本 / Version**: v1.3.2 | **更新 / Updated**: 2026-08-09
 
 ## 触发时机 / When to Activate
 
@@ -73,8 +73,18 @@ USWC, USEC, US Gulf, North Europe Base, Mediterranean, Middle East, Red Sea, Ind
 - Default container type: 40HQ. Default timeframe: nearest week of current month.
 - **柜型标准化映射**：各平台柜型名称不统一，输出时统一转换——40HQ = 40HC = 40'High Cube → 统一输出为「40HQ」；40GP = 40FT = 40'Standard → 统一输出为「40GP」。若数据源仅有笼统的 "40FT container" 无法区分 GP/HC，标注「40FT（未区分 GP/HC）」。
 - **Container type normalization**: Different platforms use different names. Normalize on output: 40HQ = 40HC = 40'High Cube; 40GP = 40FT = 40'Standard. If source only gives "40FT" without GP/HC distinction, output as "40FT (GP/HC unspecified)".
-- **有效期校验与过期过滤**：每条运价输出前必须校验有效期（valid_until 字段）。若有效期 < 当前日期，该运价已过期，**必须排除**，不得出现在输出表格中。排除时在内部日志记录排除原因，最终输出时仅呈现有效或有效期不明的运价。
-- **Validity filtering**: Before output, check each rate's valid_until date. Expired rates (valid_until < today) **must be excluded** from the output table. Log exclusions internally; only output valid rates or rates with unknown validity.
+- **有效期校验与过期过滤（强制执行）**：每条运价输出前必须逐条校验发布日期与有效期。校验规则：
+  1. 若运价标注了明确有效期（valid_until），且 valid_until < 当前日期 → **排除**
+  2. 若运价仅标注发布日期（published_date），距今超过 3 天且无明确有效期覆盖 → **视为已过期并排除**
+  3. 若运价无任何日期标注 → 保留但备注栏标注「日期不明，请确认时效」
+  4. 排除的运价在内部推理中逐条记录原因，最终输出表格中**严禁**出现任何已过期运价
+  5. 输出表格后，附校验摘要：「共获取 X 条运价，排除 Y 条已过期（{日期范围}），以下为当前有效 / 日期不明的 Z 条」
+- **Validity filtering (mandatory)**: Before output, check every rate's date:
+  1. Explicit valid_until < today → **exclude**
+  2. Published > 3 days ago with no explicit validity → **treat as expired, exclude**
+  3. No date at all → keep but annotate "date unknown, verify freshness"
+  4. Log each exclusion internally; **never** output expired rates in the table
+  5. Append a summary: "X rates fetched, Y expired ({date range}) excluded. Below are Z valid/undated rates."
 - **双源口径强制标注**：运价来自不同数据源时，价格口径可能不同（如 ShippingEuro 为 net ocean 基础海运费不含附加费，Flexport 为 all-in 含 BAF/FAF/DOC FEE）。输出时必须在备注栏明确标注费用口径，**禁止将不同费率类型的价格混合比较**。若同一航线存在多种口径的报价，在备注栏分别标注 `[net ocean]`（仅基础海运费）或 `[all-in]`（含常见附加费），并在表格下方注记：「⚠ 运价口徑不同——net ocean 仅含基础海运费，all-in 含 BAF/FAF/DOC FEE，分开对比。」
 - **Source type labeling**: Different sources may quote different rate types (e.g., net ocean basic freight vs all-in including surcharges). **Label each rate's source type** in the notes column: `[net ocean]` or `[all-in]`. **Do not mix rates of different types for direct comparison.** If both types exist for the same route, add a note below the table explaining the difference.
 - **数据完整度分级展示**：运价数据因航线冷热不同而数据完整度参差。输出时按完整度分级标注：
@@ -132,6 +142,7 @@ USWC, USEC, US Gulf, North Europe Base, Mediterranean, Middle East, Red Sea, Ind
 - Strict separation of port rotation (schedule) vs real-time AIS: port rotation from carrier schedules shows planned sequence, not real-time position. Label schedule data as `[港序]` with "非实时船位"; label AIS data with freshness tier. **Do not present port rotation's "next port" as real-time vessel position.**
 
   若 AIS 更新时间超过 6 小时，在输出末尾加注："⚠ AIS 数据已 X 小时未更新，船位可能有偏差。"
+  若 AIS 更新时间超过 24 小时（[严重滞后]），除上述警告外，额外追加提示："建议改为查询船公司港序数据（标注 [港序]）作为替代参考。可通过 SeaRates 或船公司官网 schedule 页获取计划港序。"
 - 输出格式见下方「货物追踪输出格式」
 - 无法查到结果时如实告知，并建议用户提供完整英文船名或 IMO 号重试
 
@@ -415,6 +426,10 @@ Please provide the following for QQ Email SMTP:
 *（内容由AI生成，仅供参考）*
 
 ## 版本日志 / Changelog
+
+### v1.3.2 (2026-08-09)
+- **[运价] 过期过滤强化**：校验规则从 2 级升为 5 级——增加「发布日期超过 3 天无有效期 → 视为过期」「无日期 → 标注日期不明」「强制输出校验摘要」。修复 v1.3.1 测试中 Skypace 已过期运价未被过滤的问题
+- **[追踪] 严重滞后兜底**：AIS 超过 24 小时时，追加港序替代方案建议（SeaRates / 船公司 schedule 页），修复 MSC INGRID 滞后 11 天时无替代引导的问题
 
 ### v1.3.1 (2026-08-08)
 - **[追踪] 港序 vs AIS 区分**：新增船期表港序数据与实时 AIS 的严格区分规则，港序数据标注 `[港序]` 并注明"非实时船位"，禁止将计划港序当作实时船位输出
