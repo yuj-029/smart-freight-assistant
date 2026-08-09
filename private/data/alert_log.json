@@ -1,0 +1,42 @@
+[
+  {
+    "type": "price_alert",
+    "title": "运价波动: shanghai-rotterdam",
+    "channel": "wecom",
+    "date": "2026-08-09",
+    "time": "2026-08-09 15:54:41.198608",
+    "dedup_key": "price:shanghai-rotterdam:2026-08-09"
+  },
+  {
+    "type": "usage_warning",
+    "title": "免费额度预警",
+    "channel": "wecom",
+    "date": "2026-08-09",
+    "time": "2026-08-09 15:54:41.736499",
+    "dedup_key": "usage:2026-08-09"
+  },
+  {
+    "type": "tracking_delay",
+    "title": "T1",
+    "channel": "wecom",
+    "date": "2026-08-09",
+    "time": "2026-08-09 16:02:03.380866",
+    "dedup_key": "supp_test_1_1786262523"
+  },
+  {
+    "type": "price_alert",
+    "title": "PA_A",
+    "channel": "wecom",
+    "date": "2026-08-09",
+    "time": "2026-08-09 16:02:03.465887",
+    "dedup_key": "supp_test_a_1786262523"
+  },
+  {
+    "type": "price_alert",
+    "title": "PA_B",
+    "channel": "wecom",
+    "date": "2026-08-09",
+    "time": "2026-08-09 16:02:03.468414",
+    "dedup_key": "supp_test_b_1786262523"
+  }
+]

@@ -1,0 +1,76 @@
+{
+  "wci:shanghai-rotterdam": {
+    "route": "shanghai-rotterdam",
+    "route_name": "上海 → 鹿特丹",
+    "source": "WCI",
+    "value": 4000.0,
+    "unit": "USD",
+    "updated": "2026-08-09",
+    "previous_value": 3500.0,
+    "change_pct": 14.29,
+    "alert_triggered": true,
+    "alert_direction": "📈 上涨",
+    "alert_threshold": 5.0
+  },
+  "wci:shanghai-los_angeles": {
+    "route": "shanghai-los_angeles",
+    "route_name": "上海 → 洛杉矶",
+    "source": "WCI",
+    "value": 6200.0,
+    "unit": "USD",
+    "updated": "2026-08-09",
+    "previous_value": 5894.0,
+    "change_pct": 5.19,
+    "alert_triggered": true,
+    "alert_direction": "📈 上涨",
+    "alert_threshold": 5.0
+  },
+  "wci:shanghai-new_york": {
+    "route": "shanghai-new_york",
+    "route_name": "上海 → 纽约",
+    "source": "WCI",
+    "value": 6890.0,
+    "unit": "USD",
+    "updated": "2026-08-09",
+    "previous_value": 7893.0,
+    "change_pct": -12.71,
+    "alert_triggered": true,
+    "alert_direction": "📉 下跌",
+    "alert_threshold": 5.0
+  },
+  "scfi:shanghai-uswc": {
+    "route": "shanghai-uswc",
+    "route_name": "上海 → 美西基本港",
+    "source": "SCFI",
+    "value": 5229.0,
+    "unit": "USD",
+    "updated": "2026-08-09",
+    "previous_value": null,
+    "change_pct": null,
+    "alert_triggered": false
+  },
+  "scfi:shanghai-europe": {
+    "route": "shanghai-europe",
+    "route_name": "上海 → 欧洲基本港",
+    "source": "SCFI",
+    "value": 3800.0,
+    "unit": "USD",
+    "updated": "2026-08-09",
+    "previous_value": null,
+    "change_pct": null,
+    "alert_triggered": false
+  },
+  "wci:shanghai-la": {
+    "route": "shanghai-la",
+    "route_name": "shanghai-la",
+    "source": "WCI",
+    "value": 6200.0,
+    "unit": "USD",
+    "updated": "2026-08-09",
+    "previous_value": 5894.0,
+    "change_pct": 5.19,
+    "alert_triggered": true,
+    "alert_direction": "📈 上涨",
+    "alert_threshold": 5.0
+  }
+}
