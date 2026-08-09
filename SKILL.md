@@ -1,6 +1,6 @@
 ---
 name: smart-freight-assistant
-description: 智能货代助手 — 国际物流运价查询、船期追踪、汇率换算、目的港政策、术语百科
+description: 当用户询问国际物流运价、船期追踪、汇率换算、目的港政策或货代术语时自动激活。覆盖五大基础模块（运价查询/船期追踪/汇率换算/目的港政策/术语百科）加四大监控模块（盯箱/截关/运价波动/到港提醒），支持四通道推送通知。
 ---
 <!-- AIGC:
     Label: "1"
@@ -19,7 +19,7 @@ description: 智能货代助手 — 国际物流运价查询、船期追踪、�
 > International logistics AI assistant: freight rate inquiry, vessel tracking, FX conversion, destination port policies, and terminology lookup with four-channel push notifications.
 > 国际物流智能助手：运价查询、船期追踪、汇率换算、目的港政策、术语百科，支持四通道推送通知。
 >
-> **版本 / Version**: v1.3.3 | **更新 / Updated**: 2026-08-09
+> **版本 / Version**: 2.0.0-dev | **更新 / Updated**: 2026-08-09
 
 ## 触发时机 / When to Activate
 
@@ -426,7 +426,6 @@ Please provide the following for QQ Email SMTP:
 ```
 
 *（内容由AI生成，仅供参考 / AI-generated content, for reference only）*
-*（内容由AI生成，仅供参考）*
 
 ## 版本日志 / Changelog
 

@@ -1,7 +1,7 @@
 {
   "name": "smart-freight-assistant",
   "version": "2.0.0-dev",
-  "description": "智能货代助手 — 国际物流运价查询、船期追踪、术语百科，支持四通道推送通知",
+  "description": "当用户询问国际物流运价、船期追踪、汇率换算、目的港政策或货代术语时自动激活。覆盖五大基础模块+四大监控模块，支持四通道推送通知。",
   "author": "yuj-029",
   "license": "AGPL-3.0-only",
   "keywords": ["freight-forwarder", "shipping", "logistics", "ocean-freight", "货代"],
