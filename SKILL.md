@@ -365,20 +365,4 @@ Port policies for reference only (data collected on {YYYY-MM-DD}). Verify with d
 - **[追踪] AIS 时效分级**：新增四级时效标注体系（实时/稍旧/滞后/严重滞后），替换原单一 6h 阈值
 - **[追踪] 输出模板**：追踪表新增「时效 / Freshness」列，直观展示 AIS 数据可信度
 
----
 
-## 版权与使用 / Copyright & Usage
-
-> 本 Skill（smart-freight-assistant）由 [yuj-029](https://github.com/yuj-029) 独立开发，基于 AGPL v3 许可证发布。
->
-> This Skill (smart-freight-assistant) was independently developed by [yuj-029](https://github.com/yuj-029) and released under the AGPL v3 License.
->
-> **许可要求 / License Requirements**：
-> - 允许使用、修改、分发，但必须保留原始作者署名并附带本许可证
-> - 任何基于本 Skill 的衍生作品必须同样以 AGPL v3 开源
-> - 通过网络使用本 Skill 提供服务（SaaS）视为分发，需开源完整源代码
->
-> **Permitted**: Use, modify, and distribute with proper attribution and same license.
-> **Required**: Any derivative work must also be open-sourced under AGPL v3. Network use (SaaS) counts as distribution.
->
-> 详细条款见仓库根目录 [LICENSE](https://github.com/yuj-029/smart-freight-assistant/blob/master/LICENSE) 文件。
