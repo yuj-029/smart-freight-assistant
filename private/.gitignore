@@ -1,8 +1,0 @@
-# Smart Freight Assistant - Private Layer
-# 此目录不入 Git 仓库，含 API 密钥等敏感配置
-
-*.env
-config.yaml
-*.log
-__pycache__/
-*.pyc
