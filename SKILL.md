@@ -139,11 +139,8 @@ USWC, USEC, US Gulf, North Europe Base, Mediterranean, Middle East, Red Sea, Ind
 - 无法查到结果时如实告知，并建议用户提供完整英文船名或 IMO 号重试
 
 #### 提单号/柜号追踪状态说明 / B/L & Container Tracking Status
-- **当前状态**：提单号/柜号直查链路尚未端到端验证完成，原因：
-  1. 船公司官方追踪页多数需登录或 JS 渲染，`web_fetch` 无法穿透
-  2. 第三方追踪 API（51Tracking 200 单/月免费、Ship24 10 单/月免费）尚未注册对接
-- **当前对策**：若用户提供提单号，如实告知当前状态，并引导用户提供对应**船名+航次**走公开 AIS 追踪。示例回应："提单号直查功能正在对接追踪 API 中（预计接入 51Tracking 免费额度），当前建议提供对应船名和航次，我可以通过公开 AIS 帮你追踪船位。"
-- **二期计划**：注册 51Tracking 免费 API → 端到端验证 → 上线提单号/柜号追踪
+- **当前支持**：船名+航次 通过公开 AIS 平台追踪船位
+- **提单号/柜号追踪**：暂不支持，建议引导用户提供船名+航次走 AIS 追踪
 
 ### 3. 汇率查询 / Exchange Rate Inquiry
 - 通过 web_search 获取人民币兑美元/欧元/英镑等主要币种**每日牌价**（非实时，BOC 仅工作日更新）
@@ -242,8 +239,8 @@ Disclaimer: Reference rates only. Actual rates subject to carrier booking confir
 ---
 数据来源 / Source: {VesselFinder / MarineTraffic / MyShipTracking}
 {若AIS超过6小时未更新：⚠ AIS数据已X小时未更新，船位可能有偏差}
-以上为公开 AIS 数据，仅供参考。提单号/柜号直查功能正在对接追踪 API。
-Public AIS data. B/L & container tracking via API is under development.
+以上为公开 AIS 数据，仅供参考。
+Public AIS data, for reference only.
 ```
 
 ### 术语查询 / Terminology Output
