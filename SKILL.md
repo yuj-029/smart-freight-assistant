@@ -1,7 +1,8 @@
 ---
 name: smart-freight-assistant
 description: 当用户询问国际物流运价、船期追踪、汇率换算、目的港政策或货代术语时自动激活。覆盖五大模块：运价查询、船期追踪、汇率换算、目的港政策、术语百科。
-version: 1.3.3
+metadata:
+  version: 1.3.3
 ---
 
 # 智能货代助手 / Smart Freight Assistant
