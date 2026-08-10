@@ -18,6 +18,9 @@ public/
 # 备份文件
 *.backup
 
+# 打包产物 / Release artifacts
+*.zip
+
 # 内部文档（非公开）
 docs/internal/
 
