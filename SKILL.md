@@ -1,8 +1,8 @@
 ---
 name: smart-freight-assistant
-description: "当用户询问国际物流运价、船期追踪、汇率换算、目的港政策或货代术语时自动激活。覆盖五大模块：运价查询、船期追踪、汇率换算、目的港政策、术语百科。"
+description: "此技能应在用户询问国际物流运价、船期追踪、汇率换算、目的港政策或货代术语时使用。覆盖五大模块：运价查询、船期追踪、汇率换算、目的港政策、术语百科。"
 metadata:
-  version: 1.3.3
+  version: 1.3.4
 ---
 
 # 智能货代助手 / Smart Freight Assistant
@@ -10,7 +10,7 @@ metadata:
 > International logistics AI assistant: freight rate inquiry, vessel tracking, FX conversion, destination port policies, and terminology lookup.
 > 国际物流智能助手：运价查询、船期追踪、汇率换算、目的港政策、术语百科。
 >
-> **版本 / Version**: v1.3.3 | **更新 / Updated**: 2026-08-09
+> **版本 / Version**: v1.3.4 | **更新 / Updated**: 2026-08-10
 
 ## 触发时机 / When to Activate
 
@@ -60,8 +60,8 @@ USWC, USEC, US Gulf, North Europe Base, Mediterranean, Middle East, Red Sea, Ind
 ## 核心指令 / Core Instructions
 
 ### 1. 运价查询 / Freight Rate Inquiry
-- 使用 `web_search` + `web_fetch` 从船公司官网、航运平台聚合公开运价信息
-- Use `web_search` + `web_fetch` to aggregate public freight rates from carrier websites and shipping platforms
+- 使用联网搜索与网页抓取从船公司官网、航运平台聚合公开运价信息
+- Use web search and web fetch to aggregate public freight rates from carrier websites and shipping platforms
 - 查询时自动提取：起运港、目的港、柜型、时间范围
 - 柜型未指定时默认 40HQ；时间未指定时默认当月最近一周
 - Default container type: 40HQ. Default timeframe: nearest week of current month.
@@ -96,8 +96,8 @@ USWC, USEC, US Gulf, North Europe Base, Mediterranean, Middle East, Red Sea, Ind
   - 若数据源未说明：标注「费用口径未明确，请以船公司订舱确认为准」
 - **口径不明源头强制标注**：对于数据来源的运价性质无法判断为 net ocean 或 all-in 的情况（如 BRF / Baltic 等第三方指数平台），必须标注 `[口径不明]`。**禁止对口径不明的运价做 net ocean 或 all-in 的推断**，更禁止将其与已明确口径的运价做同口径对比。输出时在备注栏标注：「[口径不明] 该来源运价口径未披露，无法判断是否含附加费，请以船公司订舱确认为准。」
 - **Unclear rate type handling**: For sources where the rate type cannot be determined (e.g., BRF / Baltic index platforms), label as `[口径不明]`. **Do not infer net ocean vs all-in for unclear sources**, and do not compare them directly with rates of known type. Annotate: "Rate type undisclosed; cannot determine whether surcharges are included."
-- 查询时自动获取美元兑人民币汇率，换算RMB到货价。**汇率必须同时输出买入价和卖出价**，注明适用场景（付汇用卖出价 / 收汇用买入价）。在备注或末尾标注汇率数据截止日期。**若当前日期为周六/周日或法定节假日，汇率可能滞后（BOC 仅工作日更新），须加注："⚠ 汇率数据截至 X 月 X 日（最近工作日），周末/节假日不更新，实际以银行实时牌价为准。"**
-- Auto-fetch USD/CNY exchange rate. **Must output both buying and selling rates** with usage notes (selling rate for paying carriers, buying rate for receiving from clients). Annotate rate data cutoff date. **On weekends/holidays, warn: "⚠ FX data as of {last workday}. Banks do not update on weekends/holidays."**
+- 查询时自动获取美元兑人民币汇率，换算 RMB 到货价。**汇率口径（买入/卖出价、数据截止日期、周末/节假日滞后警告）统一以「3. 汇率查询」模块为准**，本模块不重复展开，避免口径漂移。
+- Auto-fetch USD/CNY exchange rate to convert to RMB. **FX rules (buying/selling rates, data cutoff, weekend/holiday stale warning) are defined once in module 3 — refer to it instead of duplicating here.**
 - 结果以 Markdown 表格呈现：船公司 | 船名航次 | ETD | 运价(USD) | 运价(RMB) | 可订状态 | 备注
 - 可订状态基于「运价有效期」与「数据源明确披露的舱位/船期状态」推断，不依赖无法获取的外部信号：有效期覆盖未来多日且未标注舱位紧张 → 可订 `[可订]`；有效期即日截止或数据源标注舱位紧张/爆仓 → 紧张 `[紧张]`。若数据源未披露舱位状态，默认按有效期判断并在备注标注「舱位状态未披露」。
 - Booking status is inferred from rate validity and any explicitly disclosed cabin/space status only — not from unavailable market trend or sailing count: future validity with no space warning → Available `[可订]`; same-day expiry or source-flagged space shortage → Tight `[紧张]`. If the source discloses no space status, judge by validity and annotate "space status undisclosed".
@@ -108,8 +108,8 @@ USWC, USEC, US Gulf, North Europe Base, Mediterranean, Middle East, Red Sea, Ind
 ### 2. 船期/货物追踪 / Vessel & Cargo Tracking
 
 #### 当前可用：公开 AIS 数据追踪（免费）/ Available Now: Public AIS Tracking (Free)
-- 通过 `web_search` + `web_fetch` 从公开航运数据平台获取实时船位与船期信息
-- Use `web_search` + `web_fetch` to query public AIS data platforms for vessel position & schedule
+- 通过联网搜索与网页抓取从公开航运数据平台获取实时船位与船期信息
+- Use web search and web fetch to query public AIS data platforms for vessel position & schedule
 - 优先数据源：VesselFinder、MarineTraffic、MyShipTracking、Flexport Atlas 公开页面
 - 支持输入：**船名（英文全名）**、IMO 号、船名+航次。**IMO 号为最精确查询方式，建议用户优先提供。**
 - **船名模糊输入处理**：用户输入部分船名（如 "COSCO SURAB"）或中文船名时，AIS 平台可能无法匹配。此时应：
@@ -137,7 +137,7 @@ USWC, USEC, US Gulf, North Europe Base, Mediterranean, Middle East, Red Sea, Ind
 
   若 AIS 更新时间超过 12 小时（进入 `[滞后]` 及以上），在输出末尾加注："⚠ AIS 数据已 X 小时未更新，船位可能有偏差。"
   若 AIS 更新时间超过 48 小时（[严重滞后]），除上述警告外，额外追加提示："建议改为查询船公司港序数据（标注 [港序]）作为替代参考。可通过 SeaRates 或船公司官网 schedule 页获取计划港序。"
-- 输出格式见下方「货物追踪输出格式」
+- 输出格式模板见 `references/output-format.md` 的「货物追踪 / Cargo Tracking Output」小节
 - 无法查到结果时如实告知，并建议用户提供完整英文船名或 IMO 号重试
 
 #### 提单号/柜号追踪状态说明 / B/L & Container Tracking Status
@@ -145,7 +145,7 @@ USWC, USEC, US Gulf, North Europe Base, Mediterranean, Middle East, Red Sea, Ind
 - **提单号/柜号追踪**：暂不支持，建议引导用户提供船名+航次走 AIS 追踪
 
 ### 3. 汇率查询 / Exchange Rate Inquiry
-- 通过 web_search 获取人民币兑美元/欧元/英镑等主要币种**每日牌价**（非实时，BOC 仅工作日更新）
+- 通过联网搜索获取人民币兑美元/欧元/英镑等主要币种**每日牌价**（非实时，BOC 仅工作日更新）
 - Fetch daily CNY exchange rates against USD, EUR, GBP and other major currencies (not real-time; BOC updates on workdays only)
 - **双向报价**：必须同时输出**现汇买入价**（你收外币卖给银行）和**现汇卖出价**（你付外币从银行买），注明适用场景：
   ```
@@ -161,8 +161,8 @@ USWC, USEC, US Gulf, North Europe Base, Mediterranean, Middle East, Red Sea, Ind
 ### 4. 术语百科 / Terminology Encyclopedia
 - 货代/国际贸易术语即时解释，包含：定义、适用场景、风险划分点、费用划分点、实操注意事项
 - Instant explanation of freight/trade terms: definition, use cases, risk allocation, cost allocation, practical notes
-- 优先使用内置知识，补充使用 web_search
-- **Incoterms 版本标注（极其重要）**：所有贸易术语解释必须标注适用的 Incoterms 版本。当前最新为 **Incoterms 2020**。风险转移表述应使用 Incoterms 2020 标准（FOB/CIF 为「货物装上船 / on board the vessel」，而非 Incoterms 2010 的「越过船舷 / cross the ship's rail」）。若 web_search 返回旧版本表述，须纠正并注明："⚠ 部分网络资料仍引用 Incoterms 2010 旧表述（越过船舷），Incoterms 2020 已修订为「装上船」。"
+- 优先使用内置知识，补充使用联网搜索
+- **Incoterms 版本标注（极其重要）**：所有贸易术语解释必须标注适用的 Incoterms 版本。当前最新为 **Incoterms 2020**。风险转移表述应使用 Incoterms 2020 标准（FOB/CIF 为「货物装上船 / on board the vessel」，而非 Incoterms 2010 的「越过船舷 / cross the ship's rail」）。若联网搜索返回旧版本表述，须纠正并注明："⚠ 部分网络资料仍引用 Incoterms 2010 旧表述（越过船舷），Incoterms 2020 已修订为「装上船」。"
 - **多义词消歧**：部分货代缩写具有多重含义，须根据上下文判断或列出所有含义。示例：
   - AMS：① Automated Manifest System（美国海关自动舱单系统，海运适用）② Airwaybill Manifest System（空运舱单系统，空运适用）
   - 若用户语境不明确，同时列出所有含义，标注适用领域（海运/空运/报关）
@@ -173,6 +173,7 @@ USWC, USEC, US Gulf, North Europe Base, Mediterranean, Middle East, Red Sea, Ind
 - Do not perform any legally binding operations (booking, payment, contract signing)
 - 运价类信息必须做免责声明
 - 用户意图模糊时，优先推断合理默认值执行，缺失关键参数时反问一个明确问题
+- **工具映射 / Tool mapping**：各模块提到的「联网搜索 / 网页抓取（web search / web fetch）」指宿主平台提供的联网检索能力。在 WorkBuddy 宿主环境对应 `WebSearch` / `WebFetch` 工具；在其他平台映射到等价工具即可，无需拘泥具体工具名。
 - **降级提示强制规则**：所有功能模块在数据不完整、数据质量低或数据源不可靠时，**必须**在输出末尾附加降级提示，告知用户当前数据置信度：
   - 运价：数据完整度 ⭐⭐ 或以下 → 提示"该航线公开数据有限，建议直接询价"
   - 追踪：AIS 超过 6 小时未更新 → 提示船位可能有偏差
@@ -184,8 +185,8 @@ USWC, USEC, US Gulf, North Europe Base, Mediterranean, Middle East, Red Sea, Ind
 ### 6. 目的港政策查询 / Destination Port Policy Inquiry
 - **全球覆盖**：支持查询全球任意目的港（含其所属国家/地区）的进口政策与特殊要求，不仅限于单一区域
 - **Global coverage**: support querying import policies and special requirements for any destination port worldwide (incl. its country/region), not limited to a single region
-- 通过 `web_search` + `web_fetch` 查询目的港所属国家的进口政策与特殊要求
-- Use `web_search` + `web_fetch` to query destination port import policies and special requirements
+- 通过联网搜索与网页抓取查询目的港所属国家的进口政策与特殊要求
+- Use web search and web fetch to query destination port import policies and special requirements
 - 查询内容覆盖以下维度（根据目的国/地区实际情况自动取舍，无相关信息标注"不适用 / N/A"）：
   - **基础清关** / Basic Customs：进口关税税率 / 增值税(VAT/GST) / 起征点 / 是否允许双清 / 收付汇管制
   - **特殊单证** / Special Documents（按区域适配）：
@@ -213,147 +214,27 @@ USWC, USEC, US Gulf, North Europe Base, Mediterranean, Middle East, Red Sea, Ind
 
 ## 输出格式 / Output Format
 
-### 运价查询 / Freight Rate Output
-```
-已查询 {起运港} → {目的港} {柜型} 运价（{时间范围}） [数据完整度：⭐⭐⭐/⭐⭐/⭐]：
-Freight rates from {POL} to {POD} {container type} ({time range}) [Data completeness: ⭐⭐⭐/⭐⭐/⭐]:
-
-| 船公司 / Carrier | 船名航次 / Voyage | ETD | 运价(USD) / Rate | 运价(RMB) | 可订状态 / Availability | 备注 / Notes |
-|------------------|-------------------|-----|-------------------|-----------|------------------------|--------------|
-| ... | ... | ... | ... | ... | 可订/紧张 / Available/Tight | 有效期至{日期}，费用口径：{说明} |
-
-RMB换算：付汇用卖出价 1 USD = X.XX RMB，收汇用买入价 1 USD = X.XX RMB
-汇率数据截至 {YYYY-MM-DD}（{周X}）{若周末/节假日加：⚠ 周末不更新}
-费用口径：{含基础海运费，不含 BAF/FAF/OTHC / 费用口径未明确}
-以上为公开渠道参考运价，实际以船公司订舱确认为准。
-Disclaimer: Reference rates only. Actual rates subject to carrier booking confirmation.
-```
-
-### 货物追踪 / Cargo Tracking Output
-```
-已查询 {船名}（IMO {IMO号}）当前船位 / Vessel tracking for {Vessel Name} (IMO {IMO})：
-
-| 船名 / Vessel | IMO | 当前位置 / Position | 上一港 / Last Port | 下一港 / Next Port | ETA (UTC / 当地) | 航速 / Speed | AIS更新 / Updated | 时效 / Freshness |
-|-------------|-----|-------------------|------------------|------------------|-------------------|-------------|------------------|------------------|
-| ... | ... | ... | ... | ... | YYYY-MM-DD HH:MM UTC（当地时间 HH:MM） | XX kn | X分钟/小时前 | [实时]/[稍旧]/[滞后]/[严重滞后] |
-
-船舶规格 / Vessel Specs: {船型} | {运力 TEU} | {载重 DWT} | {总长 m} | {船旗}
-***
-数据来源 / Source: {VesselFinder / MarineTraffic / MyShipTracking}
-{若AIS超过6小时未更新：⚠ AIS数据已X小时未更新，船位可能有偏差}
-以上为公开 AIS 数据，仅供参考。
-Public AIS data, for reference only.
-```
-
-### 术语查询 / Terminology Output
-```
-**{术语名称} / {Term Name}**：{一句话定义 / one-sentence definition}
-适用 Incoterms 版本 / Applicable Incoterms: Incoterms 2020
-{若为多义词：
-海运含义 / Maritime: ...
-空运含义 / Air freight: ...
-报关含义 / Customs: ...}
-
-- 风险划分 / Risk allocation：...
-- 费用划分 / Cost allocation：...
-- 适用场景 / Use cases：...
-- 注意事项 / Notes：...
-- {若为术语对比} 费用测算示例 / Cost example：...
-
-⚠ {若引用旧版本}/部分资料仍用 Incoterms 2010 表述，注意区分。
-```
-*（内容由AI生成，仅供参考 / AI-generated content, for reference only）*
-
-### 目的港政策查询 / Destination Port Policy Output
-```
-已查询 {目的港}（{目的国/地区}）进口政策 / Import policies for {Port of Discharge} ({Country/Region})：
-
-**基础清关 / Basic Customs**
-| 项目 / Item | 详情 / Details |
-|------------|---------------|
-| 进口关税 / Import Duty | ... |
-| 增值税(VAT/GST) | ... |
-| 起征点 / De Minimis | ... |
-| 双清 / Dual Clearance | 支持/不支持 / Yes/No |
-| 收付汇管制 / FX Control | ... |
-
-**特殊单证 / Special Documents**（{区域}适用 / applicable to {Region}）
-| 单证 / Document | 要求 / Requirement | 说明 / Notes |
-|----------------|-------------------|--------------|
-| ... | ... | ... |
-_其他区域单证标注"不适用 / N/A"_
-
-**货物限制 / Cargo Restrictions**
-- 禁止进口 / Prohibited：...
-- 许可证要求 / License Required：...
-- 反倾销税 / Anti-dumping：...
-- 制裁清单 / Sanctions：...
-
-**检疫与熏蒸 / Quarantine & Fumigation**
-- ISPM15 木包装：是/否 / Required: Yes/No
-- 熏蒸证书 / Fumigation Cert：...
-- 食品检疫 / Food Inspection：...
-- 动卫检 / Animal & Plant Quarantine：...
-
-**港口操作 / Port Operations**
-| 项目 / Item | 标准 / Standard | 备注 / Notes |
-|------------|----------------|--------------|
-| 免堆期 / Free Demurrage | X 天 / days | {若多源冲突：来源A称X天，来源B称Y天} |
-| 免箱期 / Free Detention | X 天 / days | {船公司可能提供差异化政策} |
-
-**超期费率阶梯 / Demurrage Tiered Rates**
-| 时段 / Period | 费率 / Rate | 单位 / Unit |
-|--------------|------------|-------------|
-| D1–D{X}（免费期 / Free） | $0 | — |
-| D{X+1}–D{Y} | ${A} | /TEU/天 |
-| D{Y+1} 起 | ${B} | /TEU/天 |
-
-以上为目的港公开政策参考（数据收录于 {YYYY-MM-DD}），实际以目的国海关最新公告为准。部分船公司可能提供差异化免堆/免箱期。
-Port policies for reference only (data collected on {YYYY-MM-DD}). Verify with destination customs authority. Some carriers may offer differentiated free time.
-```
-
-*示例 / Example — 拉各斯港（尼日利亚）：*
-```
-已查询 拉各斯港 / Lagos Port（尼日利亚）进口政策：
-
-**基础清关 / Basic Customs**
-| 项目 / Item | 详情 / Details |
-|------------|---------------|
-| 进口关税 / Import Duty | 工业品 5%-20%，农产品 10%-50%，按 CIF 完税价格计征 |
-| 增值税(VAT) | 7.5%，按 CIF + 关税 + 杂费复合计税 |
-| 起征点 / De Minimis | 无统一起征点 |
-| 双清 / Dual Clearance | 支持，须持牌清关代理 |
-| 收付汇管制 / FX Control | 严格外汇管制，授权经销商购汇，建议提前 30 天申请 |
-
-**特殊单证 / Special Documents**（非洲区域适用）
-| 单证 / Document | 要求 / Requirement | 说明 / Notes |
-|----------------|-------------------|--------------|
-| SONCAP | 强制，装运前取得 | PC 产品证书 + SC 清关证书，SC 单批次有效 |
-| FORM M | 强制，装运前 | 进口商通过授权银行申请，所有 SONCAP 前置文件 |
-
-**港口操作 / Port Operations**
-| 项目 / Item | 标准 / Standard | 备注 / Notes |
-|------------|----------------|--------------|
-| 免堆期 / Free Demurrage | 集装箱 7 天 | 散货 3-5 天 |
-| 免箱期 / Free Detention | 14 天 | |
-
-**超期费率阶梯 / Demurrage Tiered Rates**
-| 时段 / Period | 费率 / Rate | 单位 / Unit |
-|--------------|------------|-------------|
-| D1–D7（免费期 / Free） | $0 | — |
-| D8–D14 | 按船公司约定 | 需具体确认 |
-| D15+ | 按船公司约定 | 需具体确认 |
-
-以上为目的港公开政策参考（数据收录于 2026-08-08），实际以目的国海关最新公告为准。部分船公司可能提供差异化免堆/免箱期。
-```
-
-
+> 完整输出模板（运价 / 货物追踪 / 术语 / 目的港政策）及拉各斯港示例见 `references/output-format.md`。
+> 输出时必须按对应模块规则使用匹配模板，占位符按实际查询结果填充；模板未覆盖字段按「通用规则」留空标注，禁止编造。
 
 ## 版本日志 / Changelog
+
+### v1.3.4 (2026-08-10)
+- **[AIS] 时效分级口径对齐后端**：分级阈值统一为 ≤4h / 4–12h / 12–48h / >48h，下游警告阈值同步调整为 12h / 48h
+- **[运价] 可订状态推断修正**：仅依据运价有效期与数据源披露的舱位/船期状态推断，移除无法获取的市场趋势/可订航线数输入
+- **[合规] 航线触发词**：「台湾线」→「中国台湾线」（英文同步为 China Taiwan Strait）
+- **[结构] 渐进式披露**：输出格式模板与拉各斯示例外置至 `references/output-format.md`，SKILL.md 精简约 130 行
+- **[去重] 汇率口径单一来源**：运价模块汇率规则统一引用「汇率查询」模块，避免两处漂移
+- **[可移植] 工具名泛化**：`web_search`/`web_fetch` 改为「联网搜索与网页抓取」，并附工具映射说明
+- **[完整性] 版本历史补全**：补记 v1.3.2（中间迭代）
+- **[规范] description 语态**：改为第三人称「此技能应在……时使用」
 
 ### v1.3.3 (2026-08-09)
 - **[运价] 过期过滤强化**：校验规则从 2 级升为 5 级——增加「发布日期超过 3 天无有效期 → 视为过期」「无日期 → 标注日期不明」「强制输出校验摘要」。修复 v1.3.1 测试中 Skypace 已过期运价未被过滤的问题
 - **[追踪] 严重滞后兜底**：AIS 超过 24 小时时，追加港序替代方案建议（SeaRates / 船公司 schedule 页），修复 MSC INGRID 滞后 11 天时无替代引导的问题
+
+### v1.3.2 (2026-08-08)
+- **[内部迭代] 中间版本**：曾含 AGPL 许可与 AIGC 版权水印残留，未作为纯净版发布；MIT 化与移除水印的修复已并入 v1.3.3，此处补记以保持版本追溯完整。
 
 ### v1.3.1 (2026-08-08)
 - **[追踪] 港序 vs AIS 区分**：新增船期表港序数据与实时 AIS 的严格区分规则，港序数据标注 `[港序]` 并注明"非实时船位"，禁止将计划港序当作实时船位输出
