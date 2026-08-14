@@ -1,8 +1,8 @@
 ---
 name: smart-freight-assistant
-description: "此技能应在用户询问国际物流运价、船期追踪、汇率换算、目的港政策或货代术语时使用。覆盖五大模块：运价查询、船期追踪、汇率换算、目的港政策、术语百科。"
+description: "此技能应在用户询问国际物流运价、船期追踪、船位查询、汇率换算、目的港政策或货代术语时使用。覆盖五大模块：运价查询、船期追踪（船位查询优先走小程序后端API/船讯网官方API，无配置时降级公开AIS）、汇率换算、目的港政策、术语百科。"
 metadata:
-  version: 1.3.4
+  version: 1.5.0
 ---
 
 # 智能货代助手 / Smart Freight Assistant
@@ -10,7 +10,7 @@ metadata:
 > International logistics AI assistant: freight rate inquiry, vessel tracking, FX conversion, destination port policies, and terminology lookup.
 > 国际物流智能助手：运价查询、船期追踪、汇率换算、目的港政策、术语百科。
 >
-> **版本 / Version**: v1.3.4 | **更新 / Updated**: 2026-08-10
+> **版本 / Version**: v1.5.0 | **更新 / Updated**: 2026-08-14
 
 ## 触发时机 / When to Activate
 
@@ -60,6 +60,7 @@ USWC, USEC, US Gulf, North Europe Base, Mediterranean, Middle East, Red Sea, Ind
 ## 核心指令 / Core Instructions
 
 ### 1. 运价查询 / Freight Rate Inquiry
+- **可选私有数据源（推荐，需宿主配置 `SFA_API_BASE`）**：若宿主配置了后端地址，运价查询**优先**调用 `GET {SFA_API_BASE}/api/rates?origin=&dest=&container=`（匿名公开，返回 carrier/origin/dest/rate_usd/container/etd/eta/fee_basis/valid_from/valid_until/source/fetched_at/completeness，直接映射输出表格，来源标注 `[后端API]` 并保留 source/fetched_at 溯源）；行情指数可调 `GET {SFA_API_BASE}/api/index`（SCFI 真实指数）。未配置或请求失败时，按下方公开聚合方式兜底。
 - 使用联网搜索与网页抓取从船公司官网、航运平台聚合公开运价信息
 - Use web search and web fetch to aggregate public freight rates from carrier websites and shipping platforms
 - 查询时自动提取：起运港、目的港、柜型、时间范围
@@ -107,7 +108,26 @@ USWC, USEC, US Gulf, North Europe Base, Mediterranean, Middle East, Red Sea, Ind
 
 ### 2. 船期/货物追踪 / Vessel & Cargo Tracking
 
+#### 优先数据源：小程序后端 API（可选配置 SFA_API_BASE）/ Optional: Miniapp Backend API
+- 若宿主环境配置了「智能货代助手」后端地址（配置项/环境变量 `SFA_API_BASE`，如已部署的 HTTPS 接口），船位/船期查询**优先**调用该后端（后端内部已封装船讯网等真实数据源）：
+  - `GET {SFA_API_BASE}/api/vessel?imo={IMO}&mmsi={MMSI}`（匿名公开接口，无需 token；按 **IMO/MMSI** 查询，**不支持船名**）
+  - 返回字段：`source`（shipxy 实时 / schedule_ref 船期参考等）、`position{lat,lng,speed_kn,course,last_port,next_port,eta,etd,schedule_note}`、`freshness{label,tier,hours_ago}`
+  - 输出映射：`position` → 追踪输出模板（当前位置/上一港/下一港/ETA/航速）；`freshness` → 时效列；`source=schedule_ref` 时标注「船期参考（非实时定位），实际以船公司公布为准」
+- **船名输入处理**：用户只给船名时，先用联网搜索解析「{船名} IMO number」得到 IMO 再调用；解析不到则引导用户提供 IMO 号。
+- **认证与降级**：未配置 `SFA_API_BASE` 或请求失败时，按下方「船讯网官方 API / MCP」→「公开 AIS / 船期参考」顺序降级。
+- **安全说明**：`SFA_API_BASE` 为**可选私有配置**，公开版 Skill 不内置具体地址，由部署者自行配置（避免暴露私有后端）。
+
+#### 优先数据源：船讯网官方 API / MCP（推荐，需配置）/ Preferred: Shipxy Official API / MCP
+- 若宿主环境已配置「船讯网 Shipxy」MCP 连接器，或可通过 HTTP 访问船讯网 API（api.shipxy.com，需 API Key），追踪查询**优先**使用官方数据源：
+  - **数据能力**：单船实时船位（MMSI/IMO/船名/呼号）、多船船位（≤100 条）、区域船位（≤0.5°×0.5°）、港口靠泊/到锚/预抵船舶、历史轨迹、航线 ETA、气象潮汐
+  - **更新频率**：实时 AIS 分钟级更新（近海岸基），远洋卫星覆盖可能延迟数小时
+  - **时效分级**：沿用下方四级体系（[实时]/[稍旧]/[滞后]/[严重滞后]），来源统一标注 `[船讯网API]`
+- **工具映射 / Tool mapping**：WorkBuddy 环境对应 `mcp__shipxy__*` 系列工具（如单船船位 `get_single_ship`、多船 `get_many_ship`、区域船 `get_area_ship`、轨迹 `get_ship_track`、港口靠泊/到锚/预抵 `get_berth_ships`/`get_anchor_ships`/`get_eta_ships`、ETA `get_single_eta_precise`）；其他平台映射到等价 MCP / HTTP 接口即可。若平台无对应工具但可发 HTTP 请求，也可直接调 api.shipxy.com 接口（需在请求头带 API Key）。
+- **认证与降级**：未配置 API Key 或宿主无对应工具时，**自动降级**到下方「公开 AIS / 船期参考」方式，并在输出末尾提示：「船位数据来自公开 AIS 网页抓取或船期参考，建议配置船讯网 API Key（免费注册创建）获取更准的分钟级官方船位。」
+- **权限与限制**：免费 Key 支持基础查询；卫星 AIS、历史轨迹、区域船位、推送接口等为付费权限。多船查询 ≤100 条、区域查询建议 ≤0.5°×0.5°、存在频率限制，查询时注意节流。官方授权接口合规性优于网页抓取，且实时性更稳定。
+
 #### 当前可用：公开 AIS 数据追踪（免费）/ Available Now: Public AIS Tracking (Free)
+- **实测说明**：免费实时 AIS 方案经全量实测多不可用（VesselFinder/MarineTraffic 等平台存在网络不可达/反爬限制）。若网页抓取失败，**改走「船期/港序参考」**（标注 `[港序]` 或「船期参考」）并诚实告知，**禁止编造实时位置**。
 - 通过联网搜索与网页抓取从公开航运数据平台获取实时船位与船期信息
 - Use web search and web fetch to query public AIS data platforms for vessel position & schedule
 - 优先数据源：VesselFinder、MarineTraffic、MyShipTracking、Flexport Atlas 公开页面
@@ -218,6 +238,16 @@ USWC, USEC, US Gulf, North Europe Base, Mediterranean, Middle East, Red Sea, Ind
 > 输出时必须按对应模块规则使用匹配模板，占位符按实际查询结果填充；模板未覆盖字段按「通用规则」留空标注，禁止编造。
 
 ## 版本日志 / Changelog
+
+### v1.5.0 (2026-08-14)
+- **[追踪] 新增「小程序后端 API」可选数据源（`SFA_API_BASE`）**：船位/船期查询优先调用已部署后端 `/api/vessel`（匿名公开，按 IMO/MMSI 查询，内部已封装船讯网等真实源），响应字段（source/position/freshness）直接映射输出模板；未配置时按「船讯网官方 API → 公开 AIS / 船期参考」降级。`SFA_API_BASE` 为可选私有配置，公开版不内置地址
+- **[追踪] 降级路径修正（对齐实测）**：免费实时 AIS 公开源经全量实测多不可用，网页抓取失败时改走「船期/港序参考」并诚实标注，禁止编造实时位置；船名输入需先解析 IMO 再调后端接口
+- **[运价] 新增「可选私有数据源」**：配置 `SFA_API_BASE` 后优先调用 `/api/rates`（真实运价，字段含 source/fetched_at/completeness 溯源）与 `/api/index`（SCFI 真实指数）；未配置走公开聚合兜底
+
+### v1.4.0 (2026-08-11)
+- **[追踪] 新增船讯网官方数据源（Shipxy API / MCP）**：追踪查询优先走船讯网官方接口（单船/多船/区域船位、港口靠泊/到锚/预抵、历史轨迹、ETA、气象潮汐，分钟级更新），来源标注 `[船讯网API]`；未配置 API Key 时自动降级公开 AIS 网页抓取并提示配置。官方接口合规、实时性更稳定
+- **[追踪] 工具映射扩展**：新增 `mcp__shipxy__*` 工具映射说明（get_single_ship / get_area_ship / get_ship_track / get_berth_ships 等），并允许 HTTP 直连 api.shipxy.com（需 API Key）
+- **[追踪] 权限与限制说明**：多船 ≤100 条、区域 ≤0.5°×0.5°、频率限制；卫星 AIS / 历史轨迹 / 推送为付费权限
 
 ### v1.3.4 (2026-08-10)
 - **[AIS] 时效分级口径对齐后端**：分级阈值统一为 ≤4h / 4–12h / 12–48h / >48h，下游警告阈值同步调整为 12h / 48h
